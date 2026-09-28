@@ -29,7 +29,10 @@ checks arithmetic answers, and creates the PDF. No Study River API or MCP is use
   A request for all stations must keep all stations, even if that needs a page
   tradeoff. A selection must never be labelled as the complete list.
 - Age/grade may guide initial difficulty and amount; they do not restrict who can
-  learn. Do not add age labels to the paper by default.
+  learn. Never print a grade, school year, age, or target learner on the paper,
+  even when the user states one: not in `title`, `instructions`, or items
+  (write 「英語 基礎問題」, not 「中学1年 英語」). Mention the level only in chat.
+  The renderer rejects such titles/instructions.
 
 Read [input-format.md](references/input-format.md) for the actual supported
 fields and examples. Choose one format per worksheet:

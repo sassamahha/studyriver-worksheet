@@ -31,7 +31,12 @@ FONT_PATH = Path(__file__).resolve().parents[1] / 'assets/fonts/KleeOne-SemiBold
 FONT = 'StudyRiverKlee'
 WIDTH, HEIGHT, LEFT, RIGHT = 210, 297, 12, 198
 BODY_TOP, BODY_BOTTOM = 45, 277
-VERSION = '0.3.0'
+VERSION = '0.3.1'
+# Paper never names a grade, age, or target learner (the same sheet works for anyone).
+AUDIENCE = re.compile(r'[小中高]学?[校生]?\s*[0-9０-９一二三四五六](?:\s*年|(?![0-9０-９]))|[0-9０-９一二三四五六]\s*年生|[0-9０-９]+\s*[歳才]|'
+                      r'中学|高校|小学|幼児|園児|キッズ|子ども|こども|大人|シニア|'
+                      r'\b(?:grade|year|age)\s*[0-9]+|\bages?\s+[0-9]|\b(?:kids?|children|adults?|seniors?|'
+                      r'kindergarten|preschool)\b|\bpara\s+(?:niños|adultos)|\b(?:grado|curso)\s*[0-9]+', re.I)
 # Fixed paper labels only; subject matter comes from the worksheet data.
 LABELS = {
     'ja': dict(name='なまえ', date='ひづけ', answers='こたえ・れい', remainder='あまり'),
@@ -153,6 +158,11 @@ def validate(raw):
                'qa': 'こたえを かきましょう。', 'arithmetic': 'けいさんを しましょう。'}
     fallback = default[kind] if locale == 'ja' else DEFAULT_INSTRUCTIONS[locale][kind]
     doc['instructions'] = text(raw.get('instructions', fallback), 'instructions', 160)
+    for field in ('title', 'instructions'):
+        found = AUDIENCE.search(doc[field])
+        if found:
+            fail(f'{field} names a grade, age, or target learner ("{found.group()}"). Paper stays '
+                 'neutral: describe the content instead (e.g. 英語 基礎問題), and mention the level only in chat.')
     answer_key = raw.get('answer_key', kind not in TRACE_KINDS)
     if type(answer_key) is not bool:
         fail('answer_key must be boolean')
