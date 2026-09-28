@@ -1,0 +1,4 @@
+interface:
+  display_name: "Study River A4"
+  short_description: "好きなテーマで、なぞり書き・問題と解答・計算の印刷用A4プリントを作成"
+  default_prompt: "$study-river-worksheet で、好きな動物の名前のひらがななぞりプリントを作って。"
