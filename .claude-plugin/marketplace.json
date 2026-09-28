@@ -1,0 +1,11 @@
+{
+  "name": "studyriver",
+  "owner": { "name": "Eidendo Inc." },
+  "plugins": [
+    {
+      "name": "study-river",
+      "source": "./",
+      "description": "Printable A4 worksheets from any theme: kana/kanji tracing, questions with answer keys, and math incl. long division."
+    }
+  ]
+}

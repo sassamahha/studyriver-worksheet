@@ -1,0 +1,29 @@
+{
+  "name": "study-river",
+  "version": "0.3.0",
+  "description": "Printable A4 worksheets from any theme: kana/kanji tracing, questions with answer keys, and math incl. long division. 会話で選んだテーマを、印刷できるA4学習プリントに。",
+  "author": {
+    "name": "Study River / Eidendo"
+  },
+  "homepage": "https://eidendo.co.jp/studyriver/",
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Study River",
+        "shortDescription": "テーマから印刷用A4プリントを作成",
+        "longDescription": "Create printable worksheets from conversationally authored content. Templates: kana/kanji tracing, text questions with answer keys, and checked integer arithmetic in horizontal or column (筆算) form. Requires host Python and ReportLab; no MCP or Study River API.",
+        "developerName": "Study River / Eidendo",
+        "category": "Productivity",
+        "capabilities": [
+          "Write"
+        ],
+        "defaultPrompt": [
+          "好きな動物の名前で、ひらがなのなぞりプリントを作って",
+          "Make me a kanji practice sheet with 9 characters and readings.",
+          "Hazme una hoja con 8 divisiones largas y sus respuestas."
+        ]
+      }
+    }
+  }
+}
