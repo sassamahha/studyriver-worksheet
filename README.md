@@ -26,15 +26,15 @@ Then just ask, in a new chat:
 > A quiz of 8 animal words with an answer key.
 
 <a id="chatgpt-en"></a>
-### Install in ChatGPT (Business, Enterprise, Edu)
+### Install in ChatGPT (paid plans: Plus and up)
 
-The same ZIP works as a ChatGPT skill in workspace plans (your admin must allow skill uploads).
+The same ZIP works as a ChatGPT skill on paid plans (in a Business/Enterprise/Edu workspace, your admin must allow skill uploads).
 
 1. Download `study-river-worksheet.zip` (do not unzip it).
 2. In ChatGPT, open **Skills → Create → Upload from your computer**.
 3. Upload the ZIP, then ask in a new chat.
 
-A plugin for regular ChatGPT accounts is in review.
+A plugin for the Free plan is in review.
 
 ### What it makes
 
@@ -66,15 +66,15 @@ passages, pictures, alphabet tracing.
 > 動物の英単語の穴埋めを8問、解答つきで
 
 <a id="chatgpt-ja"></a>
-### ChatGPTに入れる（Business・Enterprise・Edu）
+### ChatGPTに入れる（有料プラン：Plus以上）
 
-同じzipが、ChatGPTのワークスペース（有料）でスキルとして使えます（管理者がスキルのアップロードを許可している必要があります）。
+同じzipが、ChatGPTの有料プランでスキルとして使えます（Business・Enterprise・Eduのワークスペースでは、管理者がスキルのアップロードを許可している必要があります）。
 
 1. `study-river-worksheet.zip` をダウンロード（解凍しない）
 2. ChatGPTで「Skills → Create → Upload from your computer」を開く
 3. zipをアップロードして、新しい会話で頼む
 
-一般のChatGPT向けのプラグインは申請中です。
+無料プラン向けのプラグインは申請中です。
 
 ### 作れるもの
 
@@ -101,15 +101,15 @@ Después, pide en un chat nuevo:
 > Un cuestionario de 10 preguntas sobre los planetas, con respuestas.
 
 <a id="chatgpt-es"></a>
-### Instalar en ChatGPT (Business, Enterprise, Edu)
+### Instalar en ChatGPT (planes de pago: Plus o superior)
 
-El mismo ZIP funciona como habilidad en los espacios de trabajo de ChatGPT (el administrador debe permitir subir habilidades).
+El mismo ZIP funciona como habilidad en los planes de pago de ChatGPT (en espacios Business/Enterprise/Edu, el administrador debe permitir subir habilidades).
 
 1. Descarga `study-river-worksheet.zip` (sin descomprimir).
 2. En ChatGPT, abre **Skills → Create → Upload from your computer**.
 3. Sube el ZIP y pide en un chat nuevo.
 
-El plugin para cuentas normales de ChatGPT está en revisión.
+El plugin para el plan gratuito está en revisión.
 
 Etiquetas de la hoja en español (Nombre, Fecha, Respuestas).
 
