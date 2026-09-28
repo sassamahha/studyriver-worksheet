@@ -31,7 +31,7 @@ Then just ask, in a new chat:
 |---|---|
 | Word tracing | Any hiragana/katakana/kanji words, top to bottom |
 | Character practice | One character per column: model, 3 traces, practice boxes |
-| Questions | Any topic, with a separate answer key |
+| Questions | Any topic — English, vocabulary, fill-in-the-blank, short writing — with a separate answer key |
 | Math | Horizontal or column form: carrying, partial products, long division with remainders |
 
 Paper labels in English, Japanese, or Spanish. Not yet: vertical reading
@@ -52,13 +52,16 @@ passages, pictures, alphabet tracing.
 > 好きな動物の名前で、ひらがなのなぞりプリントを作って
 > よく使う漢字から9字、読みつきで練習プリントにして
 > 2けた×2けたの筆算を8問、答えつきで
+> 動物の英単語の穴埋めを8問、解答つきで
 
 ### 作れるもの
 
 - 言葉のなぞり（ひらがな・カタカナ・漢字、縦書き）
 - 1字練習（お手本・なぞり3回・練習マス）
-- 好きなテーマの問題と解答
+- 英語などの問題と解答（穴埋め・英作文・単語など、好きなテーマで）
 - 計算（横式・筆算：くり上がり、かけ算の途中の段、あまりのあるわり算）
+
+紙面の決まった文言（なまえ・ひづけ・こたえ）は、日本語・英語・スペイン語から選べます。
 
 ---
 
