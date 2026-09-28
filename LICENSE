@@ -3,30 +3,39 @@ Study River Worksheet License
 Copyright (c) 2026 Eidendo Inc. (株式会社英伝堂). All rights reserved.
 
 This license covers the files in this repository except the bundled font
-(see "Font" below). "Software" means those covered files.
+(see "Font" below). "Software" means those covered files. "Worksheets" means
+the pages and files you create with the Software.
 
 You MAY, free of charge:
   1. Install and use the Software in AI assistants (for example as a Claude
-     skill or plugin) for personal, family, classroom, and organizational use,
-     including commercial use.
-  2. Modify the Software for your own use.
-  3. Use, print, share, and sell the worksheets you create with it. The
-     worksheets you create are yours.
+     skill or plugin) for personal, family, and educational use, including in
+     schools, tutoring, classes, and other teaching work, paid or unpaid.
+  2. Print, copy, and hand out Worksheets to the learners you teach or support,
+     on paper or privately (for example to your own class or family).
+  3. Modify the Software for your own use.
 
 You MAY NOT, without prior written permission from Eidendo Inc.:
-  1. Redistribute, republish, or re-upload the Software, in whole or in part,
-     modified or unmodified (including in other skill, plugin, or template
-     marketplaces or download sites).
-  2. Sell, rent, sublicense, or bundle the Software with another product.
-  3. Present the Software, or a derivative of it, as your own product.
+  1. Sell, publish, or distribute Worksheets as products or content, including
+     workbooks, e-books (e.g. Kindle Direct Publishing), printable packs,
+     download sites, marketplaces (e.g. Gumroad, Etsy), or paid material
+     collections.
+  2. Redistribute, republish, or re-upload the Software, in whole or in part,
+     modified or unmodified, including in other skill, plugin, or template
+     marketplaces or download sites.
+  3. Sell, rent, sublicense, or bundle the Software with another product, or
+     present the Software or a derivative of it as your own product.
+
+Permission may be granted case by case, with or without a fee or conditions.
+To ask, contact Eidendo Inc.: https://eidendo.co.jp/contact.php
 
 Forks created on GitHub through GitHub's own fork feature are permitted only
 as GitHub's Terms of Service require; they do not grant any right beyond this
 license.
 
-Font: assets/fonts/KleeOne-SemiBold.ttf is Copyright 2020 The Klee Project
-Authors and is licensed separately under the SIL Open Font License 1.1
-(assets/fonts/KleeOne-OFL.txt). Nothing in this license restricts the font.
+Font: skills/study-river-worksheet/assets/fonts/KleeOne-SemiBold.ttf is
+Copyright 2020 The Klee Project Authors and is licensed separately under the
+SIL Open Font License 1.1 (KleeOne-OFL.txt next to it). Nothing in this license
+restricts the font.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED. IN NO EVENT SHALL EIDENDO INC. BE LIABLE FOR ANY CLAIM, DAMAGES, OR
@@ -35,13 +44,17 @@ OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
 ---
 
 【日本語の要約】（正文は上の英文）
-- 無料で使えます。個人・家庭・教室・団体・商用を問いません。
-- 自分用に改変できます。作ったプリントはあなたのもので、配布・販売も自由です。
-- 本ソフトウェア自体のコピー再配布・再公開・販売・他製品への同梱は、書面の許可なく禁止します。
+- 無料で使えます。個人・家庭のほか、学校・塾・教室・家庭教師など教える仕事（有料の授業を含む）でも使えます。
+- 作ったプリントは、教えている相手や家族に印刷して配れます。自分用の改変もできます。
+- 次のことは、英伝堂の書面の許可が必要です。
+  - 作ったプリントを商品・コンテンツとして販売・公開・配布すること（ワークブック、電子書籍・KDP、プリント集、ダウンロードサイト、Gumroad等のマーケット、有料教材集など）
+  - 本ソフトウェアのコピー再配布・再公開・販売・他製品への同梱
+- 許可は個別に判断します（無償・有償・条件つき）。お問い合わせ: https://eidendo.co.jp/contact.php
 - 同梱フォント Klee One は SIL Open Font License 1.1 に従います。
 
 【Resumen en español】(el texto en inglés es el vinculante)
-- Uso gratuito: personal, familiar, en el aula, en organizaciones y comercial.
-- Puedes modificarlo para tu propio uso. Las hojas que crees son tuyas.
-- No se permite redistribuir, volver a publicar, vender ni incluir el software en otros productos sin permiso escrito.
+- Uso gratuito personal, familiar y educativo, incluso en escuelas, clases particulares y otras actividades de enseñanza (pagadas o no).
+- Puedes imprimir y entregar las hojas a tus alumnos o familia, y modificar el software para tu propio uso.
+- Requiere permiso escrito: vender, publicar o distribuir las hojas como productos o contenido (cuadernos, libros electrónicos, paquetes imprimibles, sitios de descarga, tiendas en línea), y redistribuir o vender el software.
+- Los permisos se conceden caso por caso: https://eidendo.co.jp/contact.php
 - La fuente Klee One se rige por la SIL Open Font License 1.1.

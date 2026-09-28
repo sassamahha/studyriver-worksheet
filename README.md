@@ -81,8 +81,14 @@ Etiquetas de la hoja en español (Nombre, Fecha, Respuestas).
 
 ## License
 
-Free to use, including commercially; worksheets you make are yours.
-Redistributing or reselling this software is not permitted. See [LICENSE](LICENSE).
-Bundled font: Klee One, SIL Open Font License 1.1.
+Free for personal, family, and teaching use, including schools and tutoring:
+print and hand out the worksheets to your learners.
+Selling or publishing the worksheets as products (workbooks, e-books, printable
+packs, download sites) and redistributing this software require written
+permission — [contact us](https://eidendo.co.jp/contact.php). See [LICENSE](LICENSE).
 
-© 2026 Eidendo Inc.
+個人・家庭・教える仕事（学校・塾・教室を含む）で無料で使えます。作ったプリントを商品として販売・公開すること、本体の再配布は許可制です。
+
+Uso gratuito personal, familiar y educativo. Vender o publicar las hojas como productos requiere permiso.
+
+Bundled font: Klee One, SIL Open Font License 1.1. © 2026 Eidendo Inc.
