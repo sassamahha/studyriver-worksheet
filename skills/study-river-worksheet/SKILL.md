@@ -1,6 +1,6 @@
 ---
 name: study-river-worksheet
-description: "Printable A4 worksheets from any theme, with answer keys: picture vocabulary (2,000+ bundled pictures, any language), kana/kanji tracing (vertical), alphabet handwriting, Japanese vertical reading comprehension, questions, arithmetic incl. long division and decimals, fractions, 100-square grids, algebra/equations, mazes, sudoku. 絵カード・単語、なぞり、縦書き読解、計算・分数・方程式、迷路、数独をA4プリントに。Hojas A4: vocabulario con dibujos, caligrafía, fracciones, ecuaciones, laberintos, sudoku."
+description: "Printable A4 worksheets from any theme, with answer keys: picture vocabulary (2,000+ bundled colour pictures, any language), kana/kanji tracing (vertical), alphabet handwriting, Japanese vertical reading comprehension, questions, arithmetic incl. long division and decimals, fractions, 100-square grids, algebra/equations, mazes, sudoku. 絵カード・単語、なぞり、縦書き読解、計算・分数・方程式、迷路、数独をA4プリントに。Hojas A4: vocabulario con dibujos, caligrafía, fracciones, ecuaciones, laberintos, sudoku."
 ---
 
 # Study River worksheets
@@ -33,8 +33,8 @@ mathematical answer exactly, and creates the PDF. No Study River API or MCP is u
   even when the user states one: not in `title`, `instructions`, or items
   (write 「英語 基礎問題」, not 「中学1年 英語」). Mention the level only in chat.
   The renderer rejects such titles/instructions.
-- Paper is black and light gray only (home printers). Pictures are bundled in
-  monochrome; colour names cannot be taught with pictures.
+- Paper is black and light gray (home printers); only the bundled pictures are in
+  colour, and they still read clearly when printed in monochrome.
 
 Read [input-format.md](references/input-format.md) for the common fields, then the
 reference for the chosen kind. One kind per worksheet:
@@ -54,7 +54,7 @@ reference for the chosen kind. One kind per worksheet:
 | `maze` | Generated maze from a seed; key shows the path | [puzzles.md](references/puzzles.md) |
 | `sudoku` | 4×4, 6×6, 9×9: generated from a seed or supplied; unique solution checked | [puzzles.md](references/puzzles.md) |
 
-Not supported: colour, geometry diagrams (areas/angles), graphs, stroke-order
+Not supported: colour beyond the pictures, geometry diagrams (areas/angles), graphs, stroke-order
 diagrams, spatial logic puzzles other than mazes and sudoku. Say so and offer a
 supported kind; never silently replace the requested exercise. Describe these as
 limits of this skill, not of Study River as a whole.
@@ -64,8 +64,7 @@ limits of this skill, not of Study River as a whole.
 1. Find this skill's installed directory. Paths below are relative to it; use the
    host's Python/file tools, not a user machine path copied from this document.
 2. Run `python scripts/render_a4.py --probe`. It needs Python 3.10+ and ReportLab
-   4+ (Pillow too for pictures; the probe reports `"pictures": true`), plus the
-   bundled assets. Do not ask light users to install Node/MCP. Do not silently
+   4+, plus the bundled assets (the probe reports `"pictures": true`). Do not ask light users to install Node/MCP. Do not silently
    download dependencies. If execution is unavailable, say PDF generation is
    unavailable in this environment; a text draft is not a completed PDF.
 3. Author the complete problem/answer JSON in a writable temporary directory.

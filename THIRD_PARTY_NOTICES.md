@@ -11,13 +11,11 @@ Unmodified font. SHA-256:
 Licensed under SIL Open Font License 1.1. The full license is adjacent to the font
 as `KleeOne-OFL.txt`. The font is embedded/subset by the PDF library at render time.
 
-ReportLab (and Pillow, for pictures) are host runtime dependencies, not bundled
-code. No station database, OpenMoji assets, commercial workbook text, or external
+ReportLab is a host runtime dependency, not bundled code. No station database, OpenMoji assets, commercial workbook text, or external
 credentials are bundled.
 
 # Bundled pictures
 
 `skills/study-river-worksheet/assets/pictures/` holds original Study River
-illustrations (© 2026 Eidendo Inc.), converted to black and light gray for home
-printing. They are covered by this repository's LICENSE, not a separate license:
+illustrations (© 2026 Eidendo Inc.), reduced to small JPEG files for printing. They are covered by this repository's LICENSE, not a separate license:
 print them on your worksheets; do not extract or redistribute them as a set.

@@ -1,7 +1,7 @@
 """Shared page geometry, validation helpers, and drawing primitives.
 
 All dimensions are millimetres from the top-left corner; text sizes are points.
-Paper colours are black and light gray only (home monochrome printing).
+Paper colours are black and light gray (home monochrome printing); only bundled pictures are in colour.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ FONT = 'StudyRiverKlee'
 WIDTH, HEIGHT, LEFT, RIGHT = 210, 297, 12, 198
 BODY_TOP, BODY_BOTTOM = 45, 277
 BODY_W = RIGHT - LEFT
-VERSION = '0.4.0'
+VERSION = '0.4.1'
 # Paper never names a grade, age, or target learner (the same sheet works for anyone).
 AUDIENCE = re.compile(r'[小中高]学?[校生]?\s*[0-9０-９一二三四五六](?:\s*年|(?![0-9０-９]))|[0-9０-９一二三四五六]\s*年生|[0-9０-９]+\s*[歳才]|'
                       r'中学|高校|小学|幼児|園児|キッズ|子ども|こども|大人|シニア|'

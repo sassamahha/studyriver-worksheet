@@ -1,4 +1,4 @@
-"""Language practice: picture words (bundled monochrome pictures), Latin-alphabet
+"""Language practice: picture words (bundled colour pictures), Latin-alphabet
 handwriting on four-line guides, and vertical (tategaki) Japanese reading."""
 from __future__ import annotations
 
@@ -30,25 +30,19 @@ def catalog():
 
 
 def pictures_ready():
-    try:
-        import PIL  # noqa: F401  (ReportLab embeds PNG pictures through Pillow)
-    except ImportError:
-        return False
+    # Pictures are JPEG, embedded directly by ReportLab; nothing beyond ReportLab is needed.
     return PICTURE_ZIP.exists() and PICTURE_CATALOG.exists()
 
 
 @lru_cache(maxsize=None)
 def picture_bytes(ident):
     with zipfile.ZipFile(PICTURE_ZIP) as archive:
-        return archive.read(ident + '.png')
+        return archive.read(ident + '.jpg')
 
 
 def draw_picture(c, ident, x, y, size):
-    try:
-        from reportlab.lib.utils import ImageReader
-        reader = ImageReader(io.BytesIO(picture_bytes(ident)))
-    except ImportError:
-        fail('Pictures need Pillow in the host Python; no PDF was generated.')
+    from reportlab.lib.utils import ImageReader
+    reader = ImageReader(io.BytesIO(picture_bytes(ident)))
     c.drawImage(reader, x * mm, (HEIGHT - y - size) * mm, size * mm, size * mm,
                 preserveAspectRatio=True, anchor='c')
 

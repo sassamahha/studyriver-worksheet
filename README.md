@@ -42,7 +42,7 @@ A plugin for the Free plan is in review.
 
 | Format | Contents |
 |---|---|
-| Picture words | About 2,000 bundled pictures of everyday things; words in any language to trace, write, or match, or a picture-card page |
+| Picture words | About 2,000 bundled colour pictures of everyday things (fine on monochrome printers too); words in any language to trace, write, or match, or a picture-card page |
 | Alphabet handwriting | Letters, words, and sentences on four-line guides (accents included) |
 | Word tracing | Any hiragana/katakana/kanji words, top to bottom |
 | Character practice | One character per column: model, 3 traces, practice boxes |
@@ -51,8 +51,8 @@ A plugin for the Free plan is in review.
 | Math | Horizontal or column form (decimals too), fractions, 100-square grids, expressions and equations; answers checked exactly |
 | Puzzles | Mazes and sudoku (4×4, 6×6, 9×9) |
 
-Paper labels in English, Japanese, or Spanish. Not supported: colour, geometry
-diagrams, graphs.
+Paper labels in English, Japanese, or Spanish. Not supported: geometry diagrams,
+graphs.
 
 ---
 
@@ -85,7 +85,7 @@ diagrams, graphs.
 
 ### 作れるもの
 
-- 絵と単語（身の回りの約2,000の絵。どの言語でも、なぞり・書き取り・線むすび・絵カード）
+- 絵と単語（身の回りの約2,000のカラーの絵。白黒印刷でも使える。どの言語でも、なぞり・書き取り・線むすび・絵カード）
 - アルファベットのなぞり（4本線。文字・単語・文）
 - 言葉のなぞり（ひらがな・カタカナ・漢字、縦書き）
 - 1字練習（お手本・なぞり3回・練習マス）

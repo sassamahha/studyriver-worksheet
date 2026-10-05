@@ -1,6 +1,6 @@
 {
   "name": "study-river",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Printable A4 worksheets from any theme: picture vocabulary, kana/kanji and alphabet tracing, Japanese vertical reading, questions with answer keys, arithmetic, fractions, algebra, mazes, and sudoku. 会話で選んだテーマを、印刷できるA4学習プリントに。",
   "author": {
     "name": "Study River / Eidendo"
@@ -12,7 +12,7 @@
       "interface": {
         "displayName": "Study River",
         "shortDescription": "テーマから印刷用A4プリントを作成",
-        "longDescription": "Create printable worksheets from conversationally authored content. Kinds: picture words with about 2,000 bundled monochrome pictures (trace, write, match, cards) in any language, kana/kanji tracing, alphabet handwriting, Japanese vertical reading (comprehension, reading aloud, copying), text questions with answer keys, arithmetic incl. column form and decimals, fractions, 100-square grids, algebra and equations, mazes, and sudoku. Mathematical answers are checked exactly. Requires host Python with ReportLab (and Pillow for pictures); no MCP or Study River API.",
+        "longDescription": "Create printable worksheets from conversationally authored content. Kinds: picture words with about 2,000 bundled colour pictures (trace, write, match, cards) in any language, kana/kanji tracing, alphabet handwriting, Japanese vertical reading (comprehension, reading aloud, copying), text questions with answer keys, arithmetic incl. column form and decimals, fractions, 100-square grids, algebra and equations, mazes, and sudoku. Mathematical answers are checked exactly. Requires host Python with ReportLab; no MCP or Study River API.",
         "developerName": "Study River / Eidendo",
         "category": "Productivity",
         "capabilities": [

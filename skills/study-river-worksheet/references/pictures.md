@@ -2,11 +2,12 @@
 
 ## Bundled pictures
 
-About 2,000 original Study River illustrations of everyday nouns (animals, food,
-kitchen, home, body and health, clothing, places, transport, tools, school,
-occupations, sports, nature, and more), printed in black and light gray. They
-contain no text, so the same picture works for any language. Colour words are
-not included: a monochrome picture cannot show a colour.
+About 2,000 original Study River colour illustrations of everyday nouns (animals,
+food, kitchen, home, body and health, clothing, places, transport, tools, school,
+occupations, sports, nature, colours, and more). They contain no text, so the same
+picture works for any language. They print in gray on a monochrome printer; colour
+words (category `colors`) only work when the sheet is printed in colour, so say so
+when you use them.
 
 Find picture ids with the renderer; do not guess ids:
 
