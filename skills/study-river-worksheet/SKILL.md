@@ -1,13 +1,13 @@
 ---
 name: study-river-worksheet
-description: "Printable A4 worksheets from any theme: Japanese kana/kanji tracing (vertical, like Japanese notebooks), custom questions with answer keys, and math incl. long division. 好きな言葉でひらがな・漢字のなぞり、問題と解答、筆算をA4プリントに。Hojas A4 imprimibles: trazado de kana/kanji, preguntas con respuestas y matemáticas."
+description: "Printable A4 worksheets from any theme, with answer keys: picture vocabulary (2,000+ bundled pictures, any language), kana/kanji tracing (vertical), alphabet handwriting, Japanese vertical reading comprehension, questions, arithmetic incl. long division and decimals, fractions, 100-square grids, algebra/equations, mazes, sudoku. 絵カード・単語、なぞり、縦書き読解、計算・分数・方程式、迷路、数独をA4プリントに。Hojas A4: vocabulario con dibujos, caligrafía, fracciones, ecuaciones, laberintos, sudoku."
 ---
 
 # Study River worksheets
 
 Turn the user's chosen content into a downloadable A4 worksheet. You author the
-content; the bundled renderer measures the page, checks supported characters,
-checks arithmetic answers, and creates the PDF. No Study River API or MCP is used.
+content; the bundled renderer measures the page, checks characters, checks every
+mathematical answer exactly, and creates the PDF. No Study River API or MCP is used.
 
 ## Select content and format
 
@@ -33,39 +33,46 @@ checks arithmetic answers, and creates the PDF. No Study River API or MCP is use
   even when the user states one: not in `title`, `instructions`, or items
   (write 「英語 基礎問題」, not 「中学1年 英語」). Mention the level only in chat.
   The renderer rejects such titles/instructions.
+- Paper is black and light gray only (home printers). Pictures are bundled in
+  monochrome; colour names cannot be taught with pictures.
 
-Read [input-format.md](references/input-format.md) for the actual supported
-fields and examples. Choose one format per worksheet:
+Read [input-format.md](references/input-format.md) for the common fields, then the
+reference for the chosen kind. One kind per worksheet:
 
-| Format | Use |
-|---|---|
-| `word_trace` | Arbitrary kana or kanji words, written top to bottom by default: a light tracing column with an empty column to its left. Read [kana.md](references/kana.md). |
-| `kanji_trace` | One character per column (top to bottom, columns right to left): black model, three light tracing boxes, empty practice boxes; optional reading. Read [kanji.md](references/kanji.md). |
-| `qa` | Text questions, language practice, supplied short content; separate answer key. Read [text-questions.md](references/text-questions.md). |
-| `arithmetic` | Integer addition/subtraction/multiplication/division, horizontal (default) or `layout.format: "vertical"` column form (筆算) with digit boxes, partial products, long division and remainders; exact answer check. |
+| Kind | Use | Reference |
+|---|---|---|
+| `word_trace` | Kana/kanji words, top to bottom: light tracing column + empty column | [kana.md](references/kana.md) |
+| `kanji_trace` | One character per column: model, three traces, practice boxes | [kanji.md](references/kanji.md) |
+| `picture_words` | Bundled pictures with words in any language: `trace`, `write`, `match`, `cards` | [pictures.md](references/pictures.md) |
+| `latin_trace` | Alphabet letters, words, sentences on four-line handwriting guides | [pictures.md](references/pictures.md) |
+| `ja_reading` | Japanese passage in vertical columns: `dokkai` (questions), `ondoku` (reading aloud), `shisha` (copying) | [japanese-reading.md](references/japanese-reading.md) |
+| `qa` | Any text questions with a separate answer key | [text-questions.md](references/text-questions.md) |
+| `arithmetic` | Integers and decimals, horizontal or column form (筆算) incl. long division | [input-format.md](references/input-format.md) |
+| `fraction` | Stacked fractions and mixed numbers: + − × ÷, simplifying | [math.md](references/math.md) |
+| `grid` | 100-square (or smaller) calculation grids; renderer computes answers | [math.md](references/math.md) |
+| `math` | Signed numbers, expressions, simplify/expand, factor, linear/quadratic equations | [math.md](references/math.md) |
+| `maze` | Generated maze from a seed; key shows the path | [puzzles.md](references/puzzles.md) |
+| `sudoku` | 4×4, 6×6, 9×9: generated from a seed or supplied; unique solution checked | [puzzles.md](references/puzzles.md) |
 
-Tracing is vertical (tategaki) by default, as Japanese handwriting practice is;
-use `layout.direction: "horizontal"` only when asked. This prototype does not
-render vertical reading passages, pictures, stacked fractions,
-decimals in column form, mazes, or spatial logic puzzles. Do not advertise
-those as implemented. Offer a relevant supported format or the existing Study
-River Web/MCP route without silently replacing the requested exercise.
-Describe these as limitations of this plugin prototype, not of Study River as a
-whole. The existing Web/MCP generators support additional formats, including mazes.
+Not supported: colour, geometry diagrams (areas/angles), graphs, stroke-order
+diagrams, spatial logic puzzles other than mazes and sudoku. Say so and offer a
+supported kind; never silently replace the requested exercise. Describe these as
+limits of this skill, not of Study River as a whole.
 
 ## Generate and deliver
 
 1. Find this skill's installed directory. Paths below are relative to it; use the
    host's Python/file tools, not a user machine path copied from this document.
 2. Run `python scripts/render_a4.py --probe`. It needs Python 3.10+ and ReportLab
-   4+ in the host, plus the bundled font. A plugin install does not grant those
-   capabilities. Do not ask light users to install Node/MCP. Do not silently
+   4+ (Pillow too for pictures; the probe reports `"pictures": true`), plus the
+   bundled assets. Do not ask light users to install Node/MCP. Do not silently
    download dependencies. If execution is unavailable, say PDF generation is
    unavailable in this environment; a text draft is not a completed PDF.
 3. Author the complete problem/answer JSON in a writable temporary directory.
    Review facts, readings, level, and linguistic answers. The renderer validates
-   structure, not the truth of arbitrary text. Never interpolate content into
-   executable code or shell arguments: write JSON using a file tool.
+   mathematics exactly and structure otherwise, not the truth of arbitrary text.
+   Never interpolate content into executable code or shell arguments: write JSON
+   using a file tool.
 4. Run `python scripts/render_a4.py INPUT.json --check`. Correct data/layout
    problems, preserving explicit user choices. If the requested count cannot fit,
    ask whether count or page count may change. Set `layout.max_pages` only to the
@@ -78,11 +85,12 @@ whole. The existing Web/MCP generators support additional formats, including maz
    honestly. Check question count, page count, legibility, and matching answers.
 7. Attach/link the generated `worksheet.pdf` using the host's real downloadable
    artifact mechanism, plus `answer-key.pdf` when generated. Mention problem and
-   answer page counts separately. For tracing, the model is on the worksheet and
-   no separate answer key is needed. Do not hand the user a local host path as
-   though it were a downloadable link.
+   answer page counts separately. Tracing, cards, reading aloud, and copying have
+   the model on the worksheet and no separate key. Do not hand the user a local
+   host path as though it were a downloadable link.
 
 Keep `worksheet.json` and `report.json` for reproduction within the current task;
 offer them when requested. Reprint from the saved content/PDF, not a promise that
-LLM generation with the same prompt or seed will reproduce it. Do not import this
-data into the existing learning record or persist learner profiles automatically.
+LLM generation with the same prompt will reproduce it (mazes and sudoku do repeat
+for the same seed in this renderer version). Do not import this data into the
+existing learning record or persist learner profiles automatically.

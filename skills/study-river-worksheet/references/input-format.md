@@ -7,14 +7,20 @@ Unknown fields are rejected to avoid silently ignoring user constraints.
 Common fields:
 
 - `schema_version`: `"1.0"`
-- `kind`: `word_trace`, `kanji_trace`, `qa`, or `arithmetic`
+- `kind`: `word_trace`, `kanji_trace`, `qa`, `arithmetic` (this file), or
+  `picture_words`, `latin_trace` ([pictures.md](pictures.md)), `ja_reading`
+  ([japanese-reading.md](japanese-reading.md)), `fraction`, `grid`, `math`
+  ([math.md](math.md)), `maze`, `sudoku` ([puzzles.md](puzzles.md))
 - `title`, optional `instructions`: paper text
 - `locale`: `ja` (default), `en`, or `es`; controls fixed labels and default
   instructions, not subject matter
-- `answer_key`: boolean; default false for tracing, true otherwise
+- `answer_key`: boolean; default true when something is hidden (questions,
+  arithmetic, write/match, puzzles), false when the model is on the worksheet
+  (tracing, cards, reading aloud, copying), where a key is rejected
 - `layout.max_pages`: maximum problem pages, default 1; the answer key uses the
   same number of pages separately. Never raise it against the user's page limit.
-- `items`: 1–200 entries, each with a unique string `id`
+- `items`: 1–200 entries, each with a unique string `id` (`ja_reading` ondoku and
+  shisha have no items)
 - `sources`: optional list of `{title, url, checked_on}`; https URLs, retained in
   the content JSON, not fetched by the renderer or printed automatically
 
@@ -104,8 +110,10 @@ answers share measured row heights so answer numbering stays aligned.
 }
 ```
 
-`a`/`b`: integers -9999..9999. `op`: add/sub/mul/div. `answer`: an integer or
-fraction string (e.g. `"3/2"`). Zero divisor and wrong answers fail. The renderer
+`a`/`b`: integers -9999..9999, or decimal strings such as `"3.25"` (up to 4
+places). `op`: add/sub/mul/div. `answer`: an integer or fraction string (e.g.
+`"3/2"`); with decimals, an exact decimal string (`"0.06"`), and a division must
+terminate. Zero divisor and wrong answers fail. The renderer
 checks the result exactly and derives the printed expression from operands; do
 not add a competing prompt. This is not the existing generator's full set of
 carry/borrow/remainder/grade constraints. Choose numbers matching the user.
@@ -119,7 +127,9 @@ a column grid with an empty box per answer digit.
 {"id": "d1", "a": 745, "b": 6, "op": "div", "answer": "124", "remainder": 1}
 ```
 
-- Non-negative integers only; subtraction needs `a >= b`.
+- Non-negative numbers only; subtraction needs `a >= b`. Decimals work for
+  add/sub/mul (points aligned for add/sub; see [math.md](math.md)); division is
+  integers only.
 - `answer` is an integer string. For `div` it is the quotient, and `remainder`
   (integer, default 0) must be the exact remainder; both are checked.
   `remainder` is rejected outside vertical division.
@@ -134,6 +144,6 @@ a column grid with an empty box per answer digit.
 
 `worksheet.pdf`, optional `answer-key.pdf`, normalized `worksheet.json`, and
 `report.json` with actual page counts, item count, content ID, PDF hashes,
-renderer version, and font hash. Output is refused if the directory is nonempty.
+renderer version, font hash, and what was validated (`content_validation`). Output is refused if the directory is nonempty.
 For a saved JSON, this renderer/font version uses deterministic PDF metadata;
 it does not claim byte compatibility with Study River MCP.

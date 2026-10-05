@@ -19,30 +19,19 @@ import unicodedata
 from fractions import Fraction
 from pathlib import Path
 
-try:
-    from reportlab.lib.units import mm
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.pdfgen import canvas
-except ImportError:
-    raise SystemExit('ReportLab is unavailable. Use a host with ReportLab; no PDF was generated.')
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from reportlab.lib.units import mm  # noqa: E402
+from reportlab.pdfbase import pdfmetrics  # noqa: E402
+from reportlab.pdfgen import canvas  # noqa: E402
 
-FONT_PATH = Path(__file__).resolve().parents[1] / 'assets/fonts/KleeOne-SemiBold.ttf'
-FONT = 'StudyRiverKlee'
-WIDTH, HEIGHT, LEFT, RIGHT = 210, 297, 12, 198
-BODY_TOP, BODY_BOTTOM = 45, 277
-VERSION = '0.3.1'
-# Paper never names a grade, age, or target learner (the same sheet works for anyone).
-AUDIENCE = re.compile(r'[小中高]学?[校生]?\s*[0-9０-９一二三四五六](?:\s*年|(?![0-9０-９]))|[0-9０-９一二三四五六]\s*年生|[0-9０-９]+\s*[歳才]|'
-                      r'中学|高校|小学|幼児|園児|キッズ|子ども|こども|大人|シニア|'
-                      r'\b(?:grade|year|age)\s*[0-9]+|\bages?\s+[0-9]|\b(?:kids?|children|adults?|seniors?|'
-                      r'kindergarten|preschool)\b|\bpara\s+(?:niños|adultos)|\b(?:grado|curso)\s*[0-9]+', re.I)
-# Fixed paper labels only; subject matter comes from the worksheet data.
-LABELS = {
-    'ja': dict(name='なまえ', date='ひづけ', answers='こたえ・れい', remainder='あまり'),
-    'en': dict(name='Name', date='Date', answers='Answer key / examples', remainder='R'),
-    'es': dict(name='Nombre', date='Fecha', answers='Respuestas / ejemplos', remainder='R'),
-}
+from core import (BODY_BOTTOM, BODY_TOP, FONT, FONT_PATH, HEIGHT, LABELS, LEFT, RIGHT,  # noqa: E402
+                  VERSION, WIDTH, WorksheetError, cell, check_pages, fail, footer, glyphs, integer,
+                  is_kana, is_kanji, keys, line, load_font, measure, neutral, put, text, wrap)
+import kinds_language  # noqa: E402
+import kinds_math  # noqa: E402
+import kinds_puzzle  # noqa: E402
+
+KINDS = {k.name: k for k in (*kinds_language.KINDS, *kinds_math.KINDS, *kinds_puzzle.KINDS)}
 DEFAULT_INSTRUCTIONS = {
     'en': {'word_trace': 'Trace the light letters, then write them in the empty boxes.',
            'kanji_trace': 'Look at the model, trace it, then write it in the empty boxes.',
@@ -57,130 +46,89 @@ DEFAULT_INSTRUCTIONS = {
 CELL_W = (RIGHT - LEFT) / 2
 PITCH, DIGIT = 9.7, 8.5
 TRACE_KINDS = ('word_trace', 'kanji_trace')
-SMALL_KANA = set('ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ')
-
-
-class WorksheetError(ValueError):
-    pass
-
-
-def fail(message):
-    raise WorksheetError(message)
-
-
-def keys(obj, allowed, where):
-    if not isinstance(obj, dict):
-        fail(f'{where}: expected an object')
-    extra = set(obj) - set(allowed)
-    if extra:
-        fail(f'{where}: unsupported fields {sorted(extra)}')
-
-
-def text(value, where, limit=500):
-    if not isinstance(value, str) or not value.strip() or len(value) > limit:
-        fail(f'{where}: expected nonempty text, at most {limit} characters')
-    value = unicodedata.normalize('NFC', value)
-    if any(unicodedata.category(c).startswith('C') for c in value):
-        fail(f'{where}: control characters and multiline strings are unsupported')
-    return value
-
-
-def integer(value, where, low, high):
-    if type(value) is not int or not low <= value <= high:
-        fail(f'{where}: expected integer {low}..{high}')
-    return value
-
-
-def is_kana(c):
-    return '\u3041' <= c <= '\u3096' or '\u30a1' <= c <= '\u30fa' or c == 'ー'
-
-
-def is_kanji(c):
-    return '\u4e00' <= c <= '\u9fff' or c in '々〆'
-
-
-def load_font():
-    if FONT not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont(FONT, str(FONT_PATH)))
-
-
-def glyphs(value):
-    cmap = pdfmetrics.getFont(FONT).face.charToGlyph
-    missing = sorted({c for c in value if c != ' ' and not cmap.get(ord(c))})
-    if missing:
-        fail(f'Font cannot display: {" ".join(missing)}. Choose supported text or a verified font.')
-
-
-def measure(value, size):
-    glyphs(value)
-    return pdfmetrics.stringWidth(value, FONT, size) / mm
-
-
-def wrap(value, size, width):
-    """Keep Latin words together; allow kana/kanji character boundaries."""
-    tokens = re.findall(r'[A-Za-z0-9_]+(?:[\x27’-][A-Za-z0-9_]+)*|.', value)
-    lines, line = [], ''
-    for token in tokens:
-        if measure(token, size) > width:
-            fail('An unbreakable word is wider than the text column')
-        if line and measure(line + token, size) > width:
-            lines.append(line.rstrip())
-            line = token.lstrip()
-        else:
-            line += token
-    if line:
-        lines.append(line.rstrip())
-    return lines
 
 
 def fraction_string(value):
     return str(value.numerator) if value.denominator == 1 else str(value)
 
 
+NUMBER = re.compile(r'-?\d{1,5}(?:\.\d{1,4})?')
+
+
+def operand(value, where):
+    """Integer, or a decimal string such as "3.25" (exact; never a binary float)."""
+    if type(value) is int:
+        return integer(value, where, -9999, 9999)
+    if isinstance(value, str) and NUMBER.fullmatch(value):
+        return value if '.' in value else integer(int(value), where, -9999, 9999)
+    fail(f'{where}: expected an integer -9999..9999 or a decimal string like "3.25"')
+
+
+def decimal_string(value):
+    """Exact decimal text for a terminating Fraction, without trailing zeros."""
+    for places in range(0, 9):
+        scaled = value * 10 ** places
+        if scaled.denominator == 1:
+            n = abs(scaled.numerator)
+            whole, frac = divmod(n, 10 ** places)
+            sign = '-' if value < 0 else ''
+            return sign + str(whole) + (f'.{frac:0{places}d}' if places else '')
+    return None
+
+
+def places(value):
+    return len(value.split('.')[1]) if isinstance(value, str) and '.' in value else 0
+
+
 def validate(raw):
+    load_font()
+    kind = raw.get('kind') if isinstance(raw, dict) else None
+    spec = KINDS.get(kind)
     keys(raw, ['schema_version', 'kind', 'title', 'instructions', 'locale', 'items',
-               'answer_key', 'layout', 'sources'], 'worksheet')
+               'answer_key', 'layout', 'sources', *(spec.extra_fields if spec else ())], 'worksheet')
     if raw.get('schema_version') != '1.0':
         fail('schema_version must be 1.0')
-    kind = raw.get('kind')
-    if kind not in ('word_trace', 'kanji_trace', 'qa', 'arithmetic'):
-        fail('kind must be word_trace, kanji_trace, qa, or arithmetic')
+    if kind not in ('word_trace', 'kanji_trace', 'qa', 'arithmetic', *KINDS):
+        fail('kind must be one of: ' + ', '.join(('word_trace', 'kanji_trace', 'qa', 'arithmetic', *KINDS)))
     locale = raw.get('locale', 'ja')
     if locale not in LABELS:
         fail('locale must be ja, en, or es')
     doc = dict(raw, locale=locale)
     doc['title'] = text(raw.get('title'), 'title', 80)
-    vertical_trace = kind in TRACE_KINDS and (raw.get('layout') or {}).get('direction') != 'horizontal'
-    vertical_trace = vertical_trace if isinstance(raw.get('layout', {}), dict) else False
-    default = {'word_trace': 'うすい もじを なぞって、' + ('となりの' if vertical_trace else 'したの')
-               + ' ますに かきましょう。',
-               'kanji_trace': 'てほんを みて なぞり、あいている ますに かきましょう。',
-               'qa': 'こたえを かきましょう。', 'arithmetic': 'けいさんを しましょう。'}
-    fallback = default[kind] if locale == 'ja' else DEFAULT_INSTRUCTIONS[locale][kind]
+    layout = raw.get('layout', {})
+    keys(layout, spec.layout_fields if spec else
+         {'word_trace': ['max_pages', 'box_mm', 'direction'],
+          'kanji_trace': ['max_pages', 'box_mm', 'direction'],
+          'arithmetic': ['max_pages', 'format']}.get(kind, ['max_pages']), 'layout')
+    doc['layout'] = {'max_pages': integer(layout.get('max_pages', 1), 'max_pages', 1, 20)}
+    if spec:
+        doc['layout'].update(spec.layout(layout, doc))
+        fallback = spec.instructions[locale]
+        if callable(fallback):
+            fallback = fallback(doc)
+    else:
+        vertical_trace = kind in TRACE_KINDS and layout.get('direction') != 'horizontal'
+        default = {'word_trace': 'うすい もじを なぞって、' + ('となりの' if vertical_trace else 'したの')
+                   + ' ますに かきましょう。',
+                   'kanji_trace': 'てほんを みて なぞり、あいている ますに かきましょう。',
+                   'qa': 'こたえを かきましょう。', 'arithmetic': 'けいさんを しましょう。'}
+        fallback = default[kind] if locale == 'ja' else DEFAULT_INSTRUCTIONS[locale][kind]
     doc['instructions'] = text(raw.get('instructions', fallback), 'instructions', 160)
     for field in ('title', 'instructions'):
-        found = AUDIENCE.search(doc[field])
-        if found:
-            fail(f'{field} names a grade, age, or target learner ("{found.group()}"). Paper stays '
-                 'neutral: describe the content instead (e.g. 英語 基礎問題), and mention the level only in chat.')
-    answer_key = raw.get('answer_key', kind not in TRACE_KINDS)
+        neutral(doc[field], field)
+    has_model = kind in TRACE_KINDS or (spec and not spec.allows_key(doc))
+    answer_key = raw.get('answer_key', spec.wants_key(doc) if spec else not has_model)
     if type(answer_key) is not bool:
         fail('answer_key must be boolean')
-    if kind in TRACE_KINDS and answer_key:
-        fail(f'{kind} has a model on the worksheet and does not use an answer key')
+    if has_model and answer_key:
+        fail(f'{kind} has a model or needs no key on the worksheet; it does not use an answer key')
     doc['answer_key'] = answer_key
-    layout = raw.get('layout', {})
-    keys(layout, {'word_trace': ['max_pages', 'box_mm', 'direction'],
-                  'kanji_trace': ['max_pages', 'box_mm', 'direction'],
-                  'arithmetic': ['max_pages', 'format']}.get(kind, ['max_pages']), 'layout')
-    doc['layout'] = {'max_pages': integer(layout.get('max_pages', 1), 'max_pages', 1, 20)}
     if kind in TRACE_KINDS:
         low, default_box = (12, 16) if kind == 'word_trace' else (16, 20)
         box = layout.get('box_mm', default_box)
         if type(box) not in (int, float) or not math.isfinite(box) or not low <= box <= 22:
             fail(f'box_mm must be a finite number from {low} to 22')
         doc['layout']['box_mm'] = box
-    if kind in TRACE_KINDS:
         # Japanese handwriting practice is written top to bottom by default.
         direction = layout.get('direction', 'vertical')
         if direction not in ('vertical', 'horizontal'):
@@ -191,23 +139,29 @@ def validate(raw):
         if form not in ('horizontal', 'vertical'):
             fail('layout.format must be horizontal or vertical')
         doc['layout']['format'] = form
+    if spec:
+        spec.document(raw, doc)
     vertical = doc['layout'].get('format') == 'vertical'
-    items = raw.get('items')
-    if not isinstance(items, list) or not 1 <= len(items) <= 200:
-        fail('items must contain 1..200 entries')
+    items = raw.get('items', [] if spec and spec.min_items == 0 else None)
+    low = spec.min_items if spec else 1
+    if not isinstance(items, list) or not low <= len(items) <= 200:
+        fail(f'items must contain {low}..200 entries')
     normalized, seen = [], set()
     for i, item in enumerate(items, 1):
-        fields = {'word_trace': ['id', 'text', 'label'],
-                  'kanji_trace': ['id', 'char', 'reading'],
-                  'qa': ['id', 'prompt', 'answer', 'answer_lines', 'note'],
-                  'arithmetic': ['id', 'a', 'b', 'op', 'answer', 'remainder']}[kind]
+        fields = spec.item_fields if spec else {
+            'word_trace': ['id', 'text', 'label'],
+            'kanji_trace': ['id', 'char', 'reading'],
+            'qa': ['id', 'prompt', 'answer', 'answer_lines', 'note'],
+            'arithmetic': ['id', 'a', 'b', 'op', 'answer', 'remainder']}[kind]
         keys(item, fields, f'item {i}')
         ident = text(item.get('id'), f'item {i}.id', 40)
         if ident in seen:
             fail(f'Duplicate item id: {ident}')
         seen.add(ident)
         obj = dict(item, id=ident)
-        if kind == 'word_trace':
+        if spec:
+            obj = spec.item(item, ident, doc)
+        elif kind == 'word_trace':
             obj['text'] = text(item.get('text'), f'{ident}.text', 30)
             if not all(is_kana(c) or is_kanji(c) for c in obj['text']):
                 fail(f'{ident}: word_trace supports hiragana/katakana, ー, and kanji only')
@@ -225,44 +179,7 @@ def validate(raw):
             if 'note' in item:
                 obj['note'] = text(item['note'], f'{ident}.note')
         else:
-            for name in ('a', 'b'):
-                obj[name] = integer(item.get(name), f'{ident}.{name}', -9999, 9999)
-            a, b, op = obj['a'], obj['b'], item.get('op')
-            if op not in ('add', 'sub', 'mul', 'div'):
-                fail(f'{ident}: unsupported arithmetic operation')
-            if op == 'div' and b == 0:
-                fail(f'{ident}: division by zero')
-            supplied = text(item.get('answer'), f'{ident}.answer', 40)
-            if vertical:
-                if a < 0 or b < 0:
-                    fail(f'{ident}: vertical layout supports non-negative integers only')
-                if op == 'sub' and a < b:
-                    fail(f'{ident}: vertical subtraction needs a >= b')
-                if not re.fullmatch(r'\d+', supplied):
-                    fail(f'{ident}: answer must be a non-negative integer string')
-                if op == 'div':
-                    expected, rest = divmod(a, b)
-                    given = integer(item.get('remainder', 0), f'{ident}.remainder', 0, 9999)
-                    if (int(supplied), given) != (expected, rest):
-                        fail(f'{ident}: incorrect answer; expected {expected} remainder {rest}')
-                    obj['remainder'] = rest
-                else:
-                    if 'remainder' in item:
-                        fail(f'{ident}: remainder is only for division')
-                    expected = {'add': a + b, 'sub': a - b, 'mul': a * b}[op]
-                    if int(supplied) != expected:
-                        fail(f'{ident}: incorrect answer; expected {expected}')
-                obj['answer'] = str(expected)
-            else:
-                if 'remainder' in item:
-                    fail(f'{ident}: remainder is only for vertical division')
-                expected = {'add': lambda: Fraction(a + b), 'sub': lambda: Fraction(a - b),
-                            'mul': lambda: Fraction(a * b), 'div': lambda: Fraction(a, b)}[op]()
-                if not re.fullmatch(r'-?\d+(?:/[1-9]\d*)?', supplied):
-                    fail(f'{ident}: answer must be an integer or fraction string')
-                if Fraction(supplied) != expected:
-                    fail(f'{ident}: incorrect answer; expected {fraction_string(expected)}')
-                obj['answer'] = fraction_string(expected)
+            arithmetic_item(obj, item, ident, vertical)
         normalized.append(obj)
     doc['items'] = normalized
     sources = raw.get('sources', [])
@@ -278,6 +195,62 @@ def validate(raw):
     return doc
 
 
+def arithmetic_item(obj, item, ident, vertical):
+    for name in ('a', 'b'):
+        obj[name] = operand(item.get(name), f'{ident}.{name}')
+    a, b, op = obj['a'], obj['b'], item.get('op')
+    fa, fb = Fraction(a), Fraction(b)
+    decimal = places(a) or places(b)
+    if op not in ('add', 'sub', 'mul', 'div'):
+        fail(f'{ident}: unsupported arithmetic operation')
+    if op == 'div' and fb == 0:
+        fail(f'{ident}: division by zero')
+    supplied = text(item.get('answer'), f'{ident}.answer', 40)
+    if vertical:
+        if fa < 0 or fb < 0:
+            fail(f'{ident}: vertical layout supports non-negative numbers only')
+        if op == 'sub' and fa < fb:
+            fail(f'{ident}: vertical subtraction needs a >= b')
+        if decimal and op == 'div':
+            fail(f'{ident}: column-form division supports integers only; use the horizontal format '
+                 'for decimal division')
+        if op == 'div':
+            if not re.fullmatch(r'\d+', supplied):
+                fail(f'{ident}: answer must be a non-negative integer string')
+            expected, rest = divmod(a, b)
+            given = integer(item.get('remainder', 0), f'{ident}.remainder', 0, 9999)
+            if (int(supplied), given) != (expected, rest):
+                fail(f'{ident}: incorrect answer; expected {expected} remainder {rest}')
+            obj['remainder'] = rest
+            obj['answer'] = str(expected)
+            return
+        if 'remainder' in item:
+            fail(f'{ident}: remainder is only for division')
+        expected = {'add': fa + fb, 'sub': fa - fb, 'mul': fa * fb}[op]
+        if not re.fullmatch(r'\d+(?:\.\d+)?', supplied) or Fraction(supplied) != expected:
+            fail(f'{ident}: incorrect answer; expected {decimal_string(expected)}')
+        obj['answer'] = decimal_string(expected)
+        return
+    if 'remainder' in item:
+        fail(f'{ident}: remainder is only for vertical division')
+    expected = {'add': fa + fb, 'sub': fa - fb, 'mul': fa * fb, 'div': fa / fb if fb else None}[op]
+    if decimal:
+        shown = decimal_string(expected)
+        if shown is None:
+            fail(f'{ident}: the quotient does not terminate; choose numbers with an exact decimal answer')
+        if not re.fullmatch(r'-?\d+(?:\.\d+)?', supplied):
+            fail(f'{ident}: answer must be a decimal string')
+        if Fraction(supplied) != expected:
+            fail(f'{ident}: incorrect answer; expected {shown}')
+        obj['answer'] = shown
+        return
+    if not re.fullmatch(r'-?\d+(?:/[1-9]\d*)?', supplied):
+        fail(f'{ident}: answer must be an integer or fraction string')
+    if Fraction(supplied) != expected:
+        fail(f'{ident}: incorrect answer; expected {fraction_string(expected)}')
+    obj['answer'] = fraction_string(expected)
+
+
 def prepare(raw):
     doc = validate(raw)
     load_font()
@@ -287,9 +260,11 @@ def prepare(raw):
     if len(instructions) > 2:
         fail('Instructions must fit within two lines')
     kind = doc['kind']
+    if kind in KINDS:
+        return doc, KINDS[kind].plan(doc), instructions
     if kind in TRACE_KINDS and doc['layout']['direction'] == 'vertical':
         planner = plan_kanji_columns if kind == 'kanji_trace' else plan_word_columns
-        return (*planner(doc), instructions)
+        return doc, planner(doc), instructions
     vertical = doc['layout'].get('format') == 'vertical'
     # One remainder field style per sheet, so its presence does not hint at individual answers.
     show_remainder = any(i.get('remainder') for i in doc['items'])
@@ -329,10 +304,10 @@ def prepare(raw):
                      'or the horizontal format')
             detail = dict(remainder_field=show_remainder)
         else:
-            def operand(n):
-                return f'({n})' if n < 0 else str(n)
-            symbol = {'add': '＋', 'sub': '−', 'mul': '×', 'div': '÷'}[item['op']]
-            prompt = f'{operand(item["a"])} {symbol} {operand(item["b"])} ＝'
+            def shown(n):
+                return f'({n})' if str(n).startswith('-') else str(n)
+            symbol = {'add': '＋', 'sub': '－', 'mul': '×', 'div': '÷'}[item['op']]
+            prompt = f'{shown(item["a"])} {symbol} {shown(item["b"])} ＝'
             if measure(prompt + '  ' + item['answer'], 14) > RIGHT - LEFT - 10:
                 fail(f'{item["id"]}: arithmetic expression too wide')
             height, detail = 11, dict(prompt=prompt)
@@ -402,77 +377,38 @@ def plan_word_columns(doc):
     return check_pages(doc, pages)
 
 
-def check_pages(doc, pages):
-    if len(pages) > doc['layout']['max_pages']:
-        fail(f'{len(pages)} problem pages needed, max_pages={doc["layout"]["max_pages"]}. '
-             'Keep requested content; ask which page/count constraint to change.')
-    return doc, pages
+def columns(item):
+    """Digit strings, decimal places, and right shifts (in columns) for a 筆算 cell.
+
+    Addition/subtraction align the decimal points; multiplication aligns the right edge
+    and the product takes the sum of both decimal places, as written by hand.
+    """
+    a, b, answer = str(item['a']), str(item['b']), item['answer']
+    pa, pb = places(a), places(b)
+    da, db = a.replace('.', ''), b.replace('.', '')
+    if item['op'] == 'mul':
+        pr, sa, sb = pa + pb, 0, 0
+        product = str(int(da) * int(db)).rjust(pr + 1, '0')
+        return dict(a=(da, pa, sa), b=(db, pb, sb), answer=(product, pr))
+    pr = max(pa, pb)
+    value = Fraction(answer) * 10 ** pr
+    return dict(a=(da, pa, pr - pa), b=(db, pb, pr - pb), answer=(str(value.numerator), pr))
 
 
 def vertical_plan(item):
     """Height and width (mm) of one 筆算 cell; columns are counted in PITCH units."""
-    a, b, op, answer = str(item['a']), str(item['b']), item['op'], item['answer']
+    a, b, op = str(item['a']), str(item['b']), item['op']
     if op == 'div':
         return 50, len(a) * PITCH + measure(b, 18) + 22
-    cols = max(len(a), len(b), len(answer))
+    spec = columns(item)
+    (da, _, sa), (db, _, sb), (ans, _) = spec['a'], spec['b'], spec['answer']
+    cols = max(len(da) + sa, len(db) + sb, len(ans))
     height = 38
-    if op == 'mul' and item['b'] > 9:
-        cols = max([cols] + [len(str(item['a'] * int(d))) + k for k, d in enumerate(reversed(b))])
-        height = 40 + 9.5 * len(b)
+    multiplier = str(int(db))
+    if op == 'mul' and len(multiplier) > 1:
+        cols = max([cols] + [len(str(int(da) * int(d))) + k for k, d in enumerate(reversed(multiplier))])
+        height = 40 + 9.5 * len(multiplier)
     return height, (cols + 1) * PITCH + 12
-
-
-def put(c, x, y, value, size=11, gray=0):
-    glyphs(value)
-    c.setFont(FONT, size)
-    c.setFillGray(gray)
-    c.drawString(x * mm, (HEIGHT - y) * mm, value)
-
-
-def line(c, x1, y1, x2, y2, gray=0.65, thickness=0.25):
-    c.setStrokeGray(gray)
-    c.setLineWidth(thickness * mm)
-    c.line(x1 * mm, (HEIGHT - y1) * mm, x2 * mm, (HEIGHT - y2) * mm)
-
-
-def cell(c, char, xx, y, box, gray=None, vertical=False):
-    """One writing box with a dashed cross guide; gray=None leaves it empty.
-
-    vertical=True uses tategaki forms: ー turns upright and small kana sit top-right.
-    """
-    c.setStrokeGray(0.55)
-    c.setLineWidth(0.25 * mm)
-    c.rect(xx * mm, (HEIGHT - y - box) * mm, box * mm, box * mm)
-    c.setDash(1 * mm, 1.2 * mm)
-    line(c, xx + box / 2, y, xx + box / 2, y + box, 0.8, 0.15)
-    line(c, xx, y + box / 2, xx + box, y + box / 2, 0.8, 0.15)
-    c.setDash()
-    if gray is not None:
-        size = box * mm * 0.77
-        char_w = measure(char, size)
-        # Font metrics align all kana to the same baseline, including small kana.
-        ascent, descent = pdfmetrics.getAscentDescent(FONT, size)
-        baseline = y + box / 2 + (ascent + descent) / (2 * mm)
-        x0 = xx + (box - char_w) / 2
-        if vertical and char == 'ー':
-            c.saveState()
-            c.translate((xx + box / 2) * mm, (HEIGHT - y - box / 2) * mm)
-            c.rotate(-90)
-            c.scale(-1, 1)  # mirror so the stroke reads like the vertical form
-            put_at_origin(c, char, size, gray, char_w, (ascent + descent) / 2)
-            c.restoreState()
-            return
-        if vertical and char in SMALL_KANA:
-            shift = box * 0.14
-            x0, baseline = x0 + shift, baseline - shift
-        put(c, x0, baseline, char, size, gray)
-
-
-def put_at_origin(c, char, size, gray, width_mm, mid):
-    """Draw a glyph centred on the current origin (points; used under a transform)."""
-    c.setFont(FONT, size)
-    c.setFillGray(gray)
-    c.drawString(-width_mm * mm / 2, -mid, char)
 
 
 def grid(c, value, x, y, box, trace):
@@ -485,6 +421,13 @@ def digits(c, value, right, baseline, size=18, shift=0):
     for i, ch in enumerate(reversed(str(value))):
         centre = right - (i + shift + 0.5) * PITCH
         put(c, centre - measure(ch, size) / 2, baseline, ch, size)
+
+
+def point(c, right, baseline, decimals, shift=0, size=18):
+    """Decimal point on the boundary between column `decimals - 1` and `decimals`."""
+    if decimals:
+        x = right - (decimals + shift) * PITCH
+        put(c, x - measure('.', size) / 2, baseline, '.', size)
 
 
 def boxes(c, count, right, top, shift=0, value=None):
@@ -521,22 +464,30 @@ def draw_vertical(c, b, locale, answers):
                 rem = str(item['remainder'])
                 put(c, right - 6 - measure(rem, 13) / 2, y + 46.5, rem, 13)
         return
-    digits(c, a, right, y + 10)
-    digits(c, n, right, y + 19)
-    width = max(len(str(a)), len(str(n)))
-    symbol = {'add': '＋', 'sub': '−', 'mul': '×'}[op]
+    spec = columns(item)
+    (da, pa, sa), (db, pb, sb), (ans, pr) = spec['a'], spec['b'], spec['answer']
+    digits(c, da, right, y + 10, shift=sa)
+    point(c, right, y + 10, pa, sa)
+    digits(c, db, right, y + 19, shift=sb)
+    point(c, right, y + 19, pb, sb)
+    width = max(len(da) + sa, len(db) + sb)
+    symbol = {'add': '＋', 'sub': '－', 'mul': '×'}[op]
     put(c, right - (width + 0.5) * PITCH - measure(symbol, 16) / 2, y + 19, symbol, 16)
     rule = right - (vertical_plan(item)[1] - 12) - 1
     line(c, rule, y + 22, right + 1, y + 22, 0, 0.35)
     top = y + 24.5
-    if op == 'mul' and n > 9:
-        for k, d in enumerate(reversed(str(n))):
-            partial = a * int(d)
+    multiplier = str(int(db))
+    if op == 'mul' and len(multiplier) > 1:
+        for k, d in enumerate(reversed(multiplier)):
+            partial = int(da) * int(d)
             boxes(c, len(str(partial)), right, y + 24 + k * 9.5, k, partial if answers else None)
-        second = y + 24 + len(str(n)) * 9.5 + 0.5
+        second = y + 24 + len(multiplier) * 9.5 + 0.5
         line(c, rule, second, right + 1, second, 0, 0.35)
         top = second + 2
-    boxes(c, len(answer), right, top, value=shown)
+    # The learner places the decimal point; only the answer key prints it.
+    boxes(c, len(ans), right, top, value=ans if answers else None)
+    if answers:
+        point(c, right, top + DIGIT - 1.8, pr, size=16)
 
 
 def make_pdf(doc, pages, instructions, ident, answers=False):
@@ -558,6 +509,9 @@ def make_pdf(doc, pages, instructions, ident, answers=False):
             put(c, LEFT, 36 + n * 4.5, s, 10)
         line(c, LEFT, 41.5, RIGHT, 41.5, 0.3)
         for b in blocks:
+            if doc['kind'] in KINDS:
+                KINDS[doc['kind']].draw(c, doc, b, answers)
+                continue
             y, item, number = b['y'], b['item'], b['number']
             if doc['kind'] == 'word_trace' and doc['layout']['direction'] == 'vertical':
                 box = doc['layout']['box_mm']
@@ -609,9 +563,7 @@ def make_pdf(doc, pages, instructions, ident, answers=False):
                     put(c, x, y + 6, item['answer'], 14)
                 else:
                     line(c, x, y + 7, min(x + 30, RIGHT), y + 7)
-        line(c, LEFT, 281, RIGHT, 281, 0.65, 0.2)
-        put(c, LEFT, 286, 'Study River | eidendo.co.jp/studyriver/', 8, 0.3)
-        put(c, 147, 286, f'{ident} | {page_no}/{len(pages)}', 7, 0.3)
+        footer(c, ident, page_no, len(pages))
         c.showPage()
     c.save()
     return buffer.getvalue()
@@ -628,7 +580,8 @@ def render(raw, out_dir):
     report = {'renderer_version': VERSION, 'worksheet_id': ident,
               'problem_pages': len(pages), 'answer_pages': len(pages) if doc['answer_key'] else 0,
               'item_count': len(doc['items']), 'font_sha256': hashlib.sha256(FONT_PATH.read_bytes()).hexdigest(),
-              'content_validation': 'exact_arithmetic' if doc['kind'] == 'arithmetic'
+              'content_validation': KINDS[doc['kind']].validation if doc['kind'] in KINDS
+              else 'exact_arithmetic' if doc['kind'] == 'arithmetic'
               else 'structure_only; facts and linguistic correctness require author review',
               'pdf_sha256': {k: hashlib.sha256(v).hexdigest() for k, v in files.items()}}
     files['worksheet.json'] = (json.dumps(doc, ensure_ascii=False, indent=2) + '\n').encode()
@@ -655,12 +608,23 @@ def main():
     parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--check', action='store_true', help='Validate and plan without writing PDFs')
     parser.add_argument('--probe', action='store_true', help='Check runtime and bundled font')
+    parser.add_argument('--find-pictures', metavar='TERMS',
+                        help='Search the bundled pictures; comma-separated English or Japanese words')
+    parser.add_argument('--picture-categories', action='store_true',
+                        help='List bundled picture categories with counts and examples')
     args = parser.parse_args()
     try:
         if args.probe:
             load_font()
-            glyphs('Study River とうきょう しんじゅく なまえ 漢字 あまり ＋−×÷')
-            print(json.dumps({'ready': True, 'renderer_version': VERSION}))
+            glyphs('Study River とうきょう しんじゅく なまえ 漢字 あまり ＋−×÷ ñáéíóú¿¡')
+            print(json.dumps({'ready': True, 'renderer_version': VERSION,
+                              'pictures': kinds_language.pictures_ready()}))
+            return
+        if args.find_pictures is not None:
+            print(json.dumps(kinds_language.find_pictures(args.find_pictures), ensure_ascii=False, indent=1))
+            return
+        if args.picture_categories:
+            print(json.dumps(kinds_language.picture_categories(), ensure_ascii=False, indent=1))
             return
         if not args.input or (not args.check and not args.output_dir):
             parser.error('input and --output-dir are required (or use --check/--probe)')
